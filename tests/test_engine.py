@@ -85,3 +85,60 @@ def test_engine_sync_mode_with_stubs() -> None:
     assert events[0].type == "GESTURE_START"
 
     assert inference.closed is True
+
+
+def test_engine_context_manager_starts_and_stops() -> None:
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    camera = FakeCamera([frame])
+    inference = FakeInference()
+
+    config = GestureConfig(threaded=False, draw_annotations=False, debounce_ms=0)
+
+    with GestureEngine(
+        config,
+        camera_source=camera,  # type: ignore[arg-type]
+        inference_engine=inference,  # type: ignore[arg-type]
+    ) as engine:
+        result = engine.read()
+        assert result is not None
+        assert engine.is_running is True
+
+    assert inference.closed is True
+    assert camera._stopped is True
+
+
+def test_callback_registration_and_removal() -> None:
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    camera = FakeCamera([frame])
+    inference = FakeInference()
+
+    config = GestureConfig(
+        threaded=False,
+        draw_annotations=False,
+        debounce_ms=0,
+        min_gesture_confidence=0.5,
+    )
+
+    engine = GestureEngine(
+        config,
+        camera_source=camera,  # type: ignore[arg-type]
+        inference_engine=inference,  # type: ignore[arg-type]
+    )
+
+    events: list[object] = []
+
+    def event_cb(event: object) -> None:
+        events.append(event)
+
+    engine.on_event(event_cb)
+    assert engine.remove_event_callback(event_cb) is True
+    assert engine.remove_event_callback(event_cb) is False
+
+    engine.on_event(event_cb)
+    engine.clear_callbacks()
+
+    engine.start()
+    engine.read()
+    engine.stop()
+
+    assert events == []

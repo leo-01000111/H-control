@@ -21,20 +21,14 @@ config = GestureConfig(
     max_hands=2,
     draw_annotations=True,
     gesture_model_path="models/gesture_recognizer.task",
-)
-engine = GestureEngine(config)
-
-engine.on_event(lambda event: print(event))
-engine.start()
-
-try:
+) 
+with GestureEngine(config) as engine:
+    engine.on_event(lambda event: print(event))
     while engine.is_running:
         result = engine.read(timeout=0.2)
         if result is None:
             continue
         # Use result.frame_annotated in your UI loop
-finally:
-    engine.stop()
 ```
 
 ## Install
@@ -61,3 +55,8 @@ python examples/download_mediapipe_models.py
 python examples/camera_preview.py --gesture-model-path models/gesture_recognizer.task
 python examples/event_printer.py --gesture-model-path models/gesture_recognizer.task
 ```
+
+## Build Your App Around It
+
+- Start from `examples/host_app_template.py`
+- Read integration notes in `docs/BUILDING_AROUND_HCONTROL.md`

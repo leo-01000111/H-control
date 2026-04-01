@@ -93,6 +93,14 @@ class GestureEngine:
     def config(self) -> GestureConfig:
         return self._config
 
+    def __enter__(self) -> "GestureEngine":
+        self.start()
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        _ = exc_type, exc, tb
+        self.stop()
+
     def start(self) -> None:
         if self._running:
             return
@@ -159,6 +167,24 @@ class GestureEngine:
 
     def on_event(self, callback: EventCallback) -> None:
         self._event_callbacks.append(callback)
+
+    def remove_frame_callback(self, callback: FrameCallback) -> bool:
+        try:
+            self._frame_callbacks.remove(callback)
+            return True
+        except ValueError:
+            return False
+
+    def remove_event_callback(self, callback: EventCallback) -> bool:
+        try:
+            self._event_callbacks.remove(callback)
+            return True
+        except ValueError:
+            return False
+
+    def clear_callbacks(self) -> None:
+        self._frame_callbacks.clear()
+        self._event_callbacks.clear()
 
     def register_adapter(self, adapter: ActionAdapter) -> None:
         self._adapters.append(adapter)

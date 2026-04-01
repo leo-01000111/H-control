@@ -43,10 +43,16 @@ class MediaPipeInference:
                 "inference.mode",
                 extra={"mode": "gesture_recognizer", "model": config.gesture_model_path},
             )
-        else:
+        elif _has_legacy_hands_solution():
             # Fallback keeps hand tracking available even when no gesture model path is provided.
             self._hands_solution = self._create_hands_solution(config)
             self._logger.info("inference.mode", extra={"mode": "hands_only"})
+        else:
+            raise InferenceEngineError(
+                "MediaPipe legacy `mp.solutions.hands` is unavailable in this runtime. "
+                "Set `gesture_model_path` to a valid Gesture Recognizer `.task` model file "
+                "(for example: models/gesture_recognizer.task)."
+            )
 
     def process(self, frame_bgr: object, timestamp_ms: int) -> InferenceOutput:
         if cv2 is None or mp is None:  # pragma: no cover - guarded by __init__
@@ -198,3 +204,12 @@ def _to_landmark_tuples(landmarks: Any) -> list[Landmark3D]:
         (float(landmark.x), float(landmark.y), float(landmark.z))
         for landmark in landmarks
     ]
+
+
+def _has_legacy_hands_solution() -> bool:
+    if mp is None:
+        return False
+    solutions = getattr(mp, "solutions", None)
+    if solutions is None:
+        return False
+    return getattr(solutions, "hands", None) is not None

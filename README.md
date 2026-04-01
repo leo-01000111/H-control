@@ -33,16 +33,24 @@ with GestureEngine(config) as engine:
 
 ## Install
 
+From local clone (recommended for now):
+
 ```bash
-pip install hcontrol
+pip install -e .
 ```
 
-Optional extras:
+From GitHub:
 
 ```bash
-pip install "hcontrol[desktop]"
-pip install "hcontrol[midi]"
-pip install "hcontrol[dev]"
+pip install "git+https://github.com/leo-01000111/H-control.git@main"
+```
+
+Optional extras (local clone):
+
+```bash
+pip install -e ".[desktop]"
+pip install -e ".[midi]"
+pip install -e ".[dev]"
 ```
 
 ## Local Demo Setup
